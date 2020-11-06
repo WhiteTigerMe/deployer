@@ -36,7 +36,11 @@ app_install_core_configuration()
 
         ./bin/run config:publish --network "mainnet" &>/dev/null || true
 
+        heading "copy $CONFIG_PATH_MAINNET/delegates.json"
+        heading "into ${CONFIG_PATH_CORE}/mainnet/delegates.json"
+
         if [[ ! -f "${CONFIG_PATH_CORE}/mainnet/delegates.json" ]]; then
+            mkdir -p "${CONFIG_PATH_CORE}/mainnet"
             cp "$CONFIG_PATH_MAINNET/delegates.json" "${CONFIG_PATH_CORE}/mainnet/delegates.json"
         fi
 
@@ -50,6 +54,7 @@ app_install_core_configuration()
         ./bin/run config:publish --network "devnet" &>/dev/null || true
 
         if [[ ! -f "${CONFIG_PATH_CORE}/devnet/delegates.json" ]]; then
+            mkdir -p "${CONFIG_PATH_CORE}/devnet"
             cp "$CONFIG_PATH_DEVNET/delegates.json" "${CONFIG_PATH_CORE}/devnet/delegates.json"
         fi
 
@@ -63,6 +68,7 @@ app_install_core_configuration()
         ./bin/run config:publish --network "testnet" &>/dev/null || true
 
         if [[ ! -f "${CONFIG_PATH_CORE}/testnet/delegates.json" ]]; then
+            mkdir -p "${CONFIG_PATH_CORE}/testnet"
             cp "$CONFIG_PATH_TESTNET/delegates.json" "${CONFIG_PATH_CORE}/testnet/delegates.json"
         fi
 

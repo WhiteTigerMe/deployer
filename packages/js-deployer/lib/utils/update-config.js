@@ -11,6 +11,9 @@ const path = require('path')
 module.exports = (file, values, configPath, forceOverwrite) => {
   configPath = configPath || `${process.env.ARK_PATH_CONFIG}/deployer`
   configPath = path.resolve(configPath, file)
+
+  console.log("     -> updateConfig: ", configPath)
+
   let config
   if (fs.existsSync(configPath) && !forceOverwrite) {
     config = require(configPath)

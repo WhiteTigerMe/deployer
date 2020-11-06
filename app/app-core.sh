@@ -30,7 +30,10 @@ app_install_core()
         TESTNET_PREFIX=$(sh -c "jq '.M' $__dir/prefixes.json")
     fi
 
+    success "Core installed!"
+
     ## Create local user for psql, remove if already exists
+    heading "Creating local user for psql, remove if already exists..."
     OWNED_DATABASES=$(sudo -u postgres psql -c "\l" | fgrep " | $USER " | awk '{print $1}' | egrep "_(main|dev|test)net$") || true
     for OWNED_DATABASE in $OWNED_DATABASES; do
         sudo -u postgres dropdb "$OWNED_DATABASE"
@@ -105,7 +108,8 @@ app_install_core()
 
     rm -rf "$CONFIG_PATH_MAINNET" "$CONFIG_PATH_DEVNET" "$CONFIG_PATH_TESTNET" "$BRIDGECHAIN_PATH"
 
-    git clone https://github.com/ArkEcosystem/core.git --branch 2.6.57 --single-branch "$BRIDGECHAIN_PATH"
+    ## git clone https://github.com/ArkEcosystem/core.git --branch develop --single-branch "$BRIDGECHAIN_PATH"
+    git clone $GIT_CORE_ORIGIN --branch develop --single-branch "$BRIDGECHAIN_PATH"
 
     local DYNAMIC_FEE_ENABLED="false"
     if [[ "$FEE_DYNAMIC_ENABLED" == "Y" ]]; then
@@ -113,156 +117,166 @@ app_install_core()
     fi
 
     ## Build Mainnet
-    node "$ROOT_PATH/packages/js-deployer/bin/deployer" --configPath "$CONFIG_PATH_MAINNET" \
-                                          --corePath "$BRIDGECHAIN_PATH" \
-                                          --overwriteConfig \
-                                          --network "mainnet" \
-                                          --name "$CHAIN_NAME" \
-                                          --p2pPort "$P2P_PORT" \
-                                          --apiPort "$API_PORT" \
-                                          --webhookPort "$WEBHOOK_PORT" \
-                                          --jsonRpcPort "$JSON_RPC_PORT" \
-                                          --dbHost "$DATABASE_HOST" \
-                                          --dbPort "$DATABASE_PORT" \
-                                          --dbUsername "$DB_USER" \
-                                          --dbPassword "password" \
-                                          --dbDatabase "$DATABASE_NAME_MAINNET" \
-                                          --explorerUrl "$EXPLORER_URL" \
-                                          --forgers "$FORGERS" \
-                                          --feeStaticTransfer "$FEE_STATIC_TRANSFER" \
-                                          --feeStaticVote "$FEE_STATIC_VOTE" \
-                                          --feeStaticSecondSignature "$FEE_STATIC_SECOND_SIGNATURE" \
-                                          --feeStaticDelegateRegistration "$FEE_STATIC_DELEGATE_REGISTRATION" \
-                                          --feeStaticMultiSignature "$FEE_STATIC_MULTISIG_REGISTRATION" \
-                                          --feeStaticIpfs "$FEE_STATIC_IPFS" \
-                                          --feeStaticMultiPayment "$FEE_STATIC_MULTIPAYMENT" \
-                                          --feeStaticDelegateResignation "$FEE_STATIC_DELEGATE_RESIGNATION" \
-                                          --feeDynamicEnabled "$DYNAMIC_FEE_ENABLED" \
-                                          --feeDynamicPoolMinFee "$FEE_DYNAMIC_POOL_MIN_FEE" \
-                                          --feeDynamicBroadcastMinFee "$FEE_DYNAMIC_BROADCAST_MIN_FEE" \
-                                          --feeDynamicBytesTransfer "$FEE_DYNAMIC_BYTES_TRANSFER" \
-                                          --feeDynamicBytesSecondSignature "$FEE_DYNAMIC_BYTES_SECOND_SIGNATURE" \
-                                          --feeDynamicBytesDelegateRegistration "$FEE_DYNAMIC_BYTES_DELEGATE_REGISTRATION" \
-                                          --feeDynamicBytesVote "$FEE_DYNAMIC_BYTES_VOTE" \
-                                          --feeDynamicBytesMultiSignature "$FEE_DYNAMIC_BYTES_MULTISIG_REGISTRATION" \
-                                          --feeDynamicBytesIpfs "$FEE_DYNAMIC_BYTES_IPFS" \
-                                          --feeDynamicBytesMultiPayment "$FEE_DYNAMIC_BYTES_MULTIPAYMENT" \
-                                          --feeDynamicBytesDelegateResignation "$FEE_DYNAMIC_BYTES_DELEGATE_RESIGNATION" \
-                                          --rewardHeight "$REWARD_HEIGHT_START" \
-                                          --rewardPerBlock "$REWARD_PER_BLOCK" \
-                                          --vendorFieldLength "$VENDORFIELD_LENGTH" \
-                                          --blocktime "$BLOCK_TIME" \
-                                          --token "$TOKEN" \
-                                          --symbol "$SYMBOL" \
-                                          --peers "$MAINNET_PEERS" \
-                                          --prefixHash "$MAINNET_PREFIX" \
-                                          --transactionsPerBlock "$TXS_PER_BLOCK" \
-                                          --totalPremine "$TOTAL_PREMINE"
+    heading "Build Mainnet..."
+    node "$ROOT_PATH/packages/js-deployer/bin/deployer" \
+            --configPath "$CONFIG_PATH_MAINNET" \
+            --corePath "$BRIDGECHAIN_PATH" \
+            --overwriteConfig \
+            --network "mainnet" \
+            --name "$CHAIN_NAME" \
+            --p2pPort "$P2P_PORT" \
+            --apiPort "$API_PORT" \
+            --webhookPort "$WEBHOOK_PORT" \
+            --jsonRpcPort "$JSON_RPC_PORT" \
+            --dbHost "$DATABASE_HOST" \
+            --dbPort "$DATABASE_PORT" \
+            --dbUsername "$DB_USER" \
+            --dbPassword "password" \
+            --dbDatabase "$DATABASE_NAME_MAINNET" \
+            --explorerUrl "$EXPLORER_URL" \
+            --forgers "$FORGERS" \
+            --feeStaticTransfer "$FEE_STATIC_TRANSFER" \
+            --feeStaticVote "$FEE_STATIC_VOTE" \
+            --feeStaticSecondSignature "$FEE_STATIC_SECOND_SIGNATURE" \
+            --feeStaticDelegateRegistration "$FEE_STATIC_DELEGATE_REGISTRATION" \
+            --feeStaticMultiSignature "$FEE_STATIC_MULTISIG_REGISTRATION" \
+            --feeStaticIpfs "$FEE_STATIC_IPFS" \
+            --feeStaticMultiPayment "$FEE_STATIC_MULTIPAYMENT" \
+            --feeStaticDelegateResignation "$FEE_STATIC_DELEGATE_RESIGNATION" \
+            --feeDynamicEnabled "$DYNAMIC_FEE_ENABLED" \
+            --feeDynamicPoolMinFee "$FEE_DYNAMIC_POOL_MIN_FEE" \
+            --feeDynamicBroadcastMinFee "$FEE_DYNAMIC_BROADCAST_MIN_FEE" \
+            --feeDynamicBytesTransfer "$FEE_DYNAMIC_BYTES_TRANSFER" \
+            --feeDynamicBytesSecondSignature "$FEE_DYNAMIC_BYTES_SECOND_SIGNATURE" \
+            --feeDynamicBytesDelegateRegistration "$FEE_DYNAMIC_BYTES_DELEGATE_REGISTRATION" \
+            --feeDynamicBytesVote "$FEE_DYNAMIC_BYTES_VOTE" \
+            --feeDynamicBytesMultiSignature "$FEE_DYNAMIC_BYTES_MULTISIG_REGISTRATION" \
+            --feeDynamicBytesIpfs "$FEE_DYNAMIC_BYTES_IPFS" \
+            --feeDynamicBytesMultiPayment "$FEE_DYNAMIC_BYTES_MULTIPAYMENT" \
+            --feeDynamicBytesDelegateResignation "$FEE_DYNAMIC_BYTES_DELEGATE_RESIGNATION" \
+            --rewardHeight "$REWARD_HEIGHT_START" \
+            --rewardPerBlock "$REWARD_PER_BLOCK" \
+            --vendorFieldLength "$VENDORFIELD_LENGTH" \
+            --blocktime "$BLOCK_TIME" \
+            --token "$TOKEN" \
+            --symbol "$SYMBOL" \
+            --peers "$MAINNET_PEERS" \
+            --prefixHash "$MAINNET_PREFIX" \
+            --transactionsPerBlock "$TXS_PER_BLOCK" \
+            --totalPremine "$TOTAL_PREMINE"
+    
 
     ## Build Devnet
-    node "$ROOT_PATH/packages/js-deployer/bin/deployer" --configPath "$CONFIG_PATH_DEVNET" \
-                                          --corePath "$BRIDGECHAIN_PATH" \
-                                          --overwriteConfig \
-                                          --network "devnet" \
-                                          --name "$CHAIN_NAME" \
-                                          --p2pPort "$P2P_PORT" \
-                                          --apiPort "$API_PORT" \
-                                          --webhookPort "$WEBHOOK_PORT" \
-                                          --jsonRpcPort "$JSON_RPC_PORT" \
-                                          --dbHost "$DATABASE_HOST" \
-                                          --dbPort "$DATABASE_PORT" \
-                                          --dbUsername "$DB_USER" \
-                                          --dbPassword "password" \
-                                          --dbDatabase "$DATABASE_NAME_DEVNET" \
-                                          --explorerUrl "$EXPLORER_URL" \
-                                          --forgers "$FORGERS" \
-                                          --feeStaticTransfer "$FEE_STATIC_TRANSFER" \
-                                          --feeStaticVote "$FEE_STATIC_VOTE" \
-                                          --feeStaticSecondSignature "$FEE_STATIC_SECOND_SIGNATURE" \
-                                          --feeStaticDelegateRegistration "$FEE_STATIC_DELEGATE_REGISTRATION" \
-                                          --feeStaticMultiSignature "$FEE_STATIC_MULTISIG_REGISTRATION" \
-                                          --feeStaticIpfs "$FEE_STATIC_IPFS" \
-                                          --feeStaticMultiPayment "$FEE_STATIC_MULTIPAYMENT" \
-                                          --feeStaticDelegateResignation "$FEE_STATIC_DELEGATE_RESIGNATION" \
-                                          --feeDynamicEnabled "$DYNAMIC_FEE_ENABLED" \
-                                          --feeDynamicPoolMinFee "$FEE_DYNAMIC_POOL_MIN_FEE" \
-                                          --feeDynamicBroadcastMinFee "$FEE_DYNAMIC_BROADCAST_MIN_FEE" \
-                                          --feeDynamicBytesTransfer "$FEE_DYNAMIC_BYTES_TRANSFER" \
-                                          --feeDynamicBytesSecondSignature "$FEE_DYNAMIC_BYTES_SECOND_SIGNATURE" \
-                                          --feeDynamicBytesDelegateRegistration "$FEE_DYNAMIC_BYTES_DELEGATE_REGISTRATION" \
-                                          --feeDynamicBytesVote "$FEE_DYNAMIC_BYTES_VOTE" \
-                                          --feeDynamicBytesMultiSignature "$FEE_DYNAMIC_BYTES_MULTISIG_REGISTRATION" \
-                                          --feeDynamicBytesIpfs "$FEE_DYNAMIC_BYTES_IPFS" \
-                                          --feeDynamicBytesMultiPayment "$FEE_DYNAMIC_BYTES_MULTIPAYMENT" \
-                                          --feeDynamicBytesDelegateResignation "$FEE_DYNAMIC_BYTES_DELEGATE_RESIGNATION" \
-                                          --rewardHeight "$REWARD_HEIGHT_START" \
-                                          --rewardPerBlock "$REWARD_PER_BLOCK" \
-                                          --vendorFieldLength "$VENDORFIELD_LENGTH" \
-                                          --blocktime "$BLOCK_TIME" \
-                                          --token "$TOKEN" \
-                                          --symbol "$SYMBOL" \
-                                          --peers "$DEVNET_PEERS" \
-                                          --prefixHash "$DEVNET_PREFIX" \
-                                          --transactionsPerBlock "$TXS_PER_BLOCK" \
-                                          --totalPremine "$TOTAL_PREMINE"
+    heading "Build Devnet..."
+    node "$ROOT_PATH/packages/js-deployer/bin/deployer" \
+            --configPath "$CONFIG_PATH_DEVNET" \
+            --corePath "$BRIDGECHAIN_PATH" \
+            --overwriteConfig \
+            --network "devnet" \
+            --name "$CHAIN_NAME" \
+            --p2pPort "$P2P_PORT" \
+            --apiPort "$API_PORT" \
+            --webhookPort "$WEBHOOK_PORT" \
+            --jsonRpcPort "$JSON_RPC_PORT" \
+            --dbHost "$DATABASE_HOST" \
+            --dbPort "$DATABASE_PORT" \
+            --dbUsername "$DB_USER" \
+            --dbPassword "password" \
+            --dbDatabase "$DATABASE_NAME_DEVNET" \
+            --explorerUrl "$EXPLORER_URL" \
+            --forgers "$FORGERS" \
+            --feeStaticTransfer "$FEE_STATIC_TRANSFER" \
+            --feeStaticVote "$FEE_STATIC_VOTE" \
+            --feeStaticSecondSignature "$FEE_STATIC_SECOND_SIGNATURE" \
+            --feeStaticDelegateRegistration "$FEE_STATIC_DELEGATE_REGISTRATION" \
+            --feeStaticMultiSignature "$FEE_STATIC_MULTISIG_REGISTRATION" \
+            --feeStaticIpfs "$FEE_STATIC_IPFS" \
+            --feeStaticMultiPayment "$FEE_STATIC_MULTIPAYMENT" \
+            --feeStaticDelegateResignation "$FEE_STATIC_DELEGATE_RESIGNATION" \
+            --feeDynamicEnabled "$DYNAMIC_FEE_ENABLED" \
+            --feeDynamicPoolMinFee "$FEE_DYNAMIC_POOL_MIN_FEE" \
+            --feeDynamicBroadcastMinFee "$FEE_DYNAMIC_BROADCAST_MIN_FEE" \
+            --feeDynamicBytesTransfer "$FEE_DYNAMIC_BYTES_TRANSFER" \
+            --feeDynamicBytesSecondSignature "$FEE_DYNAMIC_BYTES_SECOND_SIGNATURE" \
+            --feeDynamicBytesDelegateRegistration "$FEE_DYNAMIC_BYTES_DELEGATE_REGISTRATION" \
+            --feeDynamicBytesVote "$FEE_DYNAMIC_BYTES_VOTE" \
+            --feeDynamicBytesMultiSignature "$FEE_DYNAMIC_BYTES_MULTISIG_REGISTRATION" \
+            --feeDynamicBytesIpfs "$FEE_DYNAMIC_BYTES_IPFS" \
+            --feeDynamicBytesMultiPayment "$FEE_DYNAMIC_BYTES_MULTIPAYMENT" \
+            --feeDynamicBytesDelegateResignation "$FEE_DYNAMIC_BYTES_DELEGATE_RESIGNATION" \
+            --rewardHeight "$REWARD_HEIGHT_START" \
+            --rewardPerBlock "$REWARD_PER_BLOCK" \
+            --vendorFieldLength "$VENDORFIELD_LENGTH" \
+            --blocktime "$BLOCK_TIME" \
+            --token "$TOKEN" \
+            --symbol "$SYMBOL" \
+            --peers "$DEVNET_PEERS" \
+            --prefixHash "$DEVNET_PREFIX" \
+            --transactionsPerBlock "$TXS_PER_BLOCK" \
+            --totalPremine "$TOTAL_PREMINE"
 
     ## Build Testnet
-    node "$ROOT_PATH/packages/js-deployer/bin/deployer" --configPath "$CONFIG_PATH_TESTNET" \
-                                          --corePath "$BRIDGECHAIN_PATH" \
-                                          --overwriteConfig \
-                                          --network "testnet" \
-                                          --name "$CHAIN_NAME" \
-                                          --p2pPort "$P2P_PORT" \
-                                          --apiPort "$API_PORT" \
-                                          --webhookPort "$WEBHOOK_PORT" \
-                                          --jsonRpcPort "$JSON_RPC_PORT" \
-                                          --dbHost "$DATABASE_HOST" \
-                                          --dbPort "$DATABASE_PORT" \
-                                          --dbUsername "$DB_USER" \
-                                          --dbPassword "password" \
-                                          --dbDatabase "$DATABASE_NAME_TESTNET" \
-                                          --explorerUrl "$EXPLORER_URL" \
-                                          --forgers "$FORGERS" \
-                                          --feeStaticTransfer "$FEE_STATIC_TRANSFER" \
-                                          --feeStaticVote "$FEE_STATIC_VOTE" \
-                                          --feeStaticSecondSignature "$FEE_STATIC_SECOND_SIGNATURE" \
-                                          --feeStaticDelegateRegistration "$FEE_STATIC_DELEGATE_REGISTRATION" \
-                                          --feeStaticMultiSignature "$FEE_STATIC_MULTISIG_REGISTRATION" \
-                                          --feeStaticIpfs "$FEE_STATIC_IPFS" \
-                                          --feeStaticMultiPayment "$FEE_STATIC_MULTIPAYMENT" \
-                                          --feeStaticDelegateResignation "$FEE_STATIC_DELEGATE_RESIGNATION" \
-                                          --feeDynamicEnabled "$DYNAMIC_FEE_ENABLED" \
-                                          --feeDynamicPoolMinFee "$FEE_DYNAMIC_POOL_MIN_FEE" \
-                                          --feeDynamicBroadcastMinFee "$FEE_DYNAMIC_BROADCAST_MIN_FEE" \
-                                          --feeDynamicBytesTransfer "$FEE_DYNAMIC_BYTES_TRANSFER" \
-                                          --feeDynamicBytesSecondSignature "$FEE_DYNAMIC_BYTES_SECOND_SIGNATURE" \
-                                          --feeDynamicBytesDelegateRegistration "$FEE_DYNAMIC_BYTES_DELEGATE_REGISTRATION" \
-                                          --feeDynamicBytesVote "$FEE_DYNAMIC_BYTES_VOTE" \
-                                          --feeDynamicBytesMultiSignature "$FEE_DYNAMIC_BYTES_MULTISIG_REGISTRATION" \
-                                          --feeDynamicBytesIpfs "$FEE_DYNAMIC_BYTES_IPFS" \
-                                          --feeDynamicBytesMultiPayment "$FEE_DYNAMIC_BYTES_MULTIPAYMENT" \
-                                          --feeDynamicBytesDelegateResignation "$FEE_DYNAMIC_BYTES_DELEGATE_RESIGNATION" \
-                                          --rewardPerBlock "$REWARD_PER_BLOCK" \
-                                          --vendorFieldLength "$VENDORFIELD_LENGTH" \
-                                          --blocktime "$BLOCK_TIME" \
-                                          --token "$TOKEN" \
-                                          --symbol "$SYMBOL" \
-                                          --prefixHash "$TESTNET_PREFIX" \
-                                          --transactionsPerBlock "$TXS_PER_BLOCK" \
-                                          --totalPremine "$TOTAL_PREMINE"
+    heading "Build Testnet..."
+    node "$ROOT_PATH/packages/js-deployer/bin/deployer" \
+            --configPath "$CONFIG_PATH_TESTNET" \
+            --corePath "$BRIDGECHAIN_PATH" \
+            --overwriteConfig \
+            --network "testnet" \
+            --name "$CHAIN_NAME" \
+            --p2pPort "$P2P_PORT" \
+            --apiPort "$API_PORT" \
+            --webhookPort "$WEBHOOK_PORT" \
+            --jsonRpcPort "$JSON_RPC_PORT" \
+            --dbHost "$DATABASE_HOST" \
+            --dbPort "$DATABASE_PORT" \
+            --dbUsername "$DB_USER" \
+            --dbPassword "password" \
+            --dbDatabase "$DATABASE_NAME_TESTNET" \
+            --explorerUrl "$EXPLORER_URL" \
+            --forgers "$FORGERS" \
+            --feeStaticTransfer "$FEE_STATIC_TRANSFER" \
+            --feeStaticVote "$FEE_STATIC_VOTE" \
+            --feeStaticSecondSignature "$FEE_STATIC_SECOND_SIGNATURE" \
+            --feeStaticDelegateRegistration "$FEE_STATIC_DELEGATE_REGISTRATION" \
+            --feeStaticMultiSignature "$FEE_STATIC_MULTISIG_REGISTRATION" \
+            --feeStaticIpfs "$FEE_STATIC_IPFS" \
+            --feeStaticMultiPayment "$FEE_STATIC_MULTIPAYMENT" \
+            --feeStaticDelegateResignation "$FEE_STATIC_DELEGATE_RESIGNATION" \
+            --feeDynamicEnabled "$DYNAMIC_FEE_ENABLED" \
+            --feeDynamicPoolMinFee "$FEE_DYNAMIC_POOL_MIN_FEE" \
+            --feeDynamicBroadcastMinFee "$FEE_DYNAMIC_BROADCAST_MIN_FEE" \
+            --feeDynamicBytesTransfer "$FEE_DYNAMIC_BYTES_TRANSFER" \
+            --feeDynamicBytesSecondSignature "$FEE_DYNAMIC_BYTES_SECOND_SIGNATURE" \
+            --feeDynamicBytesDelegateRegistration "$FEE_DYNAMIC_BYTES_DELEGATE_REGISTRATION" \
+            --feeDynamicBytesVote "$FEE_DYNAMIC_BYTES_VOTE" \
+            --feeDynamicBytesMultiSignature "$FEE_DYNAMIC_BYTES_MULTISIG_REGISTRATION" \
+            --feeDynamicBytesIpfs "$FEE_DYNAMIC_BYTES_IPFS" \
+            --feeDynamicBytesMultiPayment "$FEE_DYNAMIC_BYTES_MULTIPAYMENT" \
+            --feeDynamicBytesDelegateResignation "$FEE_DYNAMIC_BYTES_DELEGATE_RESIGNATION" \
+            --rewardPerBlock "$REWARD_PER_BLOCK" \
+            --vendorFieldLength "$VENDORFIELD_LENGTH" \
+            --blocktime "$BLOCK_TIME" \
+            --token "$TOKEN" \
+            --symbol "$SYMBOL" \
+            --prefixHash "$TESTNET_PREFIX" \
+            --transactionsPerBlock "$TXS_PER_BLOCK" \
+            --totalPremine "$TOTAL_PREMINE"
 
-    rm -rf "$BRIDGECHAIN_PATH"/packages/core/bin/config/{mainnet,devnet,testnet}/
-    rm -rf "$BRIDGECHAIN_PATH"/packages/crypto/src/networks/{mainnet,devnet,testnet}/
+    rm -rf "$BRIDGECHAIN_PATH"/packages/core/bin/config/{mainnet,devnet,testnet}/ || true
+    rm -rf "$BRIDGECHAIN_PATH"/packages/crypto/src/networks/{mainnet,devnet,testnet}/ || true
 
     cp -R "$CONFIG_PATH_MAINNET/core" "$BRIDGECHAIN_PATH/packages/core/bin/config/mainnet"
     cp -R "$CONFIG_PATH_MAINNET/crypto" "$BRIDGECHAIN_PATH/packages/crypto/src/networks/mainnet"
+    
     cp -R "$CONFIG_PATH_DEVNET/core" "$BRIDGECHAIN_PATH/packages/core/bin/config/devnet"
     cp -R "$CONFIG_PATH_DEVNET/crypto" "$BRIDGECHAIN_PATH/packages/crypto/src/networks/devnet"
+
     cp -R "$CONFIG_PATH_TESTNET/core" "$BRIDGECHAIN_PATH/packages/core/bin/config/testnet"
     cp -R "$CONFIG_PATH_TESTNET/crypto" "$BRIDGECHAIN_PATH/packages/crypto/src/networks/testnet"
     cp "$CONFIG_PATH_TESTNET/delegates.json" "$BRIDGECHAIN_PATH/packages/core/bin/config/testnet/"
 
     ## Update core properties
+    heading "Update core properties"
     local PACKAGE_JSON_PATH="$BRIDGECHAIN_PATH/packages/core/package.json"
     local PACKAGE_JSON=$(cat "$PACKAGE_JSON_PATH" | jq ".name = \"@${CORE_ALIAS}/core\"")
     local PACKAGE_JSON=$(echo "$PACKAGE_JSON" | jq ".description = \"Core of the ${CHAIN_NAME} Blockchain\"")
