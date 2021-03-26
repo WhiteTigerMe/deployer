@@ -222,7 +222,7 @@ if (
   !fs.existsSync(oldCryptoNetworkPath)
 ) {
   logger.error(`Network '${options.network}' does not exist`);
-  process.exit(1);
+  // process.exit(1);
 }
 
 // Create config path
@@ -382,6 +382,147 @@ updateConfig(
   options.configPath,
   true
 );
+
+// Update plugins config
+let pluginsConfig = fs
+  .readFileSync(path.resolve(coreNetworkPath, "plugins.js"))
+  .toString();
+const pluginsToUpdate = [
+  // Remove magistrate plugin
+  {
+    from: '"@arkecosystem/core-magistrate-transactions": {},',
+    to: ""
+  },
+  // Database config
+  {
+    from: /process\.env\.CORE_DB_HOST \|\| "(\w+)"/g,
+    to: `process.env.CORE_DB_HOST || "${options.dbHost}"`
+  },
+  {
+    from: /process\.env\.CORE_DB_PORT \|\| (\d+)/g,
+    to: `process.env.CORE_DB_PORT || ${options.dbPort}`
+  },
+  {
+    from: /process\.env\.CORE_DB_PASSWORD \|\| "(.+)"/g,
+    to: `process.env.CORE_DB_PASSWORD || "${options.dbPassword}"`
+  },
+  // P2P config
+  {
+    from: /process\.env\.CORE_P2P_HOST \|\| "(.+)"/g,
+    to: `process.env.CORE_P2P_HOST || "${options.coreIp}"`
+  },
+  {
+    from: /process\.env\.CORE_P2P_PORT \|\| (\d+)/g,
+    to: `process.env.CORE_P2P_PORT || ${options.p2pPort}`
+  },
+  // API config
+  {
+    from: /process\.env\.CORE_API_HOST \|\| "(.+)"/g,
+    to: `process.env.CORE_API_HOST || "${options.coreIp}"`
+  },
+  {
+    from: /process\.env\.CORE_API_PORT \|\| (\d+)/g,
+    to: `process.env.CORE_API_PORT || ${options.apiPort}`
+  },
+  // Webhook config
+  {
+    from: /process\.env\.CORE_WEBHOOKS_HOST \|\| "(.+)"/g,
+    to: `process.env.CORE_WEBHOOKS_HOST || "${options.coreIp}"`
+  },
+  {
+    from: /process\.env\.CORE_WEBHOOKS_PORT \|\| (\d+)/g,
+    to: `process.env.CORE_WEBHOOKS_PORT || ${options.webhookPort}`
+  },
+  // JSON RPC config
+  {
+    from: /process\.env\.CORE_JSON_RPC_HOST \|\| "(.+)"/g,
+    to: `process.env.CORE_JSON_RPC_HOST || "${options.coreIp}"`
+  },
+  {
+    from: /process\.env\.CORE_JSON_RPC_PORT \|\| (\d+)/g,
+    to: `process.env.CORE_JSON_RPC_PORT || ${options.jsonRpcPort}`
+  },
+  // Dynamic Fees
+  {
+    from: /(dynamicFees: {[a-zA-Z0-9: ,\n{}]*enabled: )(true|false+)/g,
+    to: `$1${options.feeDynamicEnabled}`
+  },
+  {
+    from: /(dynamicFees: {[a-zA-Z0-9: ,\n{}]*minFeePool: )([0-9]+)/g,
+    to: `$1${options.feeDynamicPoolMinFee}`
+  },
+  {
+    from: /(dynamicFees: {[a-zA-Z0-9: ,\n{}]*minFeeBroadcast: )([0-9]+)/g,
+    to: `$1${options.feeDynamicBroadcastMinFee}`
+  },
+  {
+    from: /(dynamicFees: {[a-zA-Z0-9: ,\n{}]*addonBytes: {[a-zA-Z0-9: ,\n{}]*transfer: )([0-9]+)/g,
+    to: `$1${options.feeDynamicBytesTransfer}`
+  },
+  {
+    from: /(dynamicFees: {[a-zA-Z0-9: ,\n{}]*addonBytes: {[a-zA-Z0-9: ,\n{}]*secondSignature: )([0-9]+)/g,
+    to: `$1${options.feeDynamicBytesSecondSignature}`
+  },
+  {
+    from: /(dynamicFees: {[a-zA-Z0-9: ,\n{}]*addonBytes: {[a-zA-Z0-9: ,\n{}]*delegateRegistration: )([0-9]+)/g,
+    to: `$1${options.feeDynamicBytesDelegateRegistration}`
+  },
+  {
+    from: /(dynamicFees: {[a-zA-Z0-9: ,\n{}]*addonBytes: {[a-zA-Z0-9: ,\n{}]*vote: )([0-9]+)/g,
+    to: `$1${options.feeDynamicBytesVote}`
+  },
+  {
+    from: /(dynamicFees: {[a-zA-Z0-9: ,\n{}]*addonBytes: {[a-zA-Z0-9: ,\n{}]*multiSignature: )([0-9]+)/g,
+    to: `$1${options.feeDynamicBytesMultiSignature}`
+  },
+  {
+    from: /(dynamicFees: {[a-zA-Z0-9: ,\n{}]*addonBytes: {[a-zA-Z0-9: ,\n{}]*ipfs: )([0-9]+)/g,
+    to: `$1${options.feeDynamicBytesIpfs}`
+  },
+  {
+    from: /(dynamicFees: {[a-zA-Z0-9: ,\n{}]*addonBytes: {[a-zA-Z0-9: ,\n{}]*multiPayment: )([0-9]+)/g,
+    to: `$1${options.feeDynamicBytesMultiPayment}`
+  },
+  {
+    from: /(dynamicFees: {[a-zA-Z0-9: ,\n{}]*addonBytes: {[a-zA-Z0-9: ,\n{}]*delegateResignation: )([0-9]+)/g,
+    to: `$1${options.feeDynamicBytesDelegateResignation}`
+  },
+  // Remove HTLC fees
+  {
+    from: /(dynamicFees: {[a-zA-Z0-9: ,\n{}]*addonBytes: {[a-zA-Z0-9: ,\n{}]*,\n)([ ]*)(htlcLock: [0-9]+,\n[ ]*htlcClaim: [0-9]+,\n[ ]*htlcRefund: [0-9]+,\n)/g,
+    to: "$1"
+  },
+  // Remove business fees
+  {
+    from: /(dynamicFees: {[a-zA-Z0-9: ,\n{}]*addonBytes: {[a-zA-Z0-9: ,\n{}]*,\n)([ ]*)(businessRegistration: [0-9]+,\n[ ]*businessUpdate: [0-9]+,\n[ ]*businessResignation: [0-9]+,\n)/g,
+    to: "$1"
+  },
+  // Remove bridgechain fees
+  {
+    from: /(dynamicFees: {[a-zA-Z0-9: ,\n{}]*addonBytes: {[a-zA-Z0-9: ,\n{}]*,\n)([ ]*)(bridgechainRegistration: [0-9]+,\n[ ]*bridgechainUpdate: [0-9]+,\n[ ]*bridgechainResignation: [0-9]+,\n)/g,
+    to: "$1"
+  }
+];
+
+for (const replacement of pluginsToUpdate) {
+  pluginsConfig = pluginsConfig.replace(replacement.from, replacement.to);
+}
+
+if (options.network === "testnet") {
+  pluginsConfig = pluginsConfig.replace(
+    /(minimumNetworkReach:) [0-9]+/g,
+    `$1 2`
+  );
+}
+
+if (options.network === "mainnet") {
+  pluginsConfig = pluginsConfig.replace(
+    /("@arkecosystem\/core-p2p": {)/,
+    `$1\n        minimumNetworkReach: ${Math.ceil(options.forgers / 3)},`
+  );
+}
+
+fs.writeFileSync(path.resolve(coreNetworkPath, "plugins.js"), pluginsConfig);
 
 // Update env config
 let envConfig = fs

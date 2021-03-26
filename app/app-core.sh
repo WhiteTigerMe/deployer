@@ -100,6 +100,9 @@ app_install_core()
         sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD 'password' CREATEDB;"
     fi
 
+    ## Get core and configure mainnet, devnet and testnet
+    heading "Preparing deployer to initialize mainnet, devnet and testnet"
+
     cd "$ROOT_PATH"
     if [ ! -d "$ROOT_PATH/packages/js-deployer/node_modules" ]; then
         cd "$ROOT_PATH/packages/js-deployer"
@@ -164,7 +167,6 @@ app_install_core()
             --prefixHash "$MAINNET_PREFIX" \
             --transactionsPerBlock "$TXS_PER_BLOCK" \
             --totalPremine "$TOTAL_PREMINE"
-    
 
     ## Build Devnet
     heading "Build Devnet..."
@@ -267,7 +269,7 @@ app_install_core()
 
     cp -R "$CONFIG_PATH_MAINNET/core" "$BRIDGECHAIN_PATH/packages/core/bin/config/mainnet"
     cp -R "$CONFIG_PATH_MAINNET/crypto" "$BRIDGECHAIN_PATH/packages/crypto/src/networks/mainnet"
-    
+
     cp -R "$CONFIG_PATH_DEVNET/core" "$BRIDGECHAIN_PATH/packages/core/bin/config/devnet"
     cp -R "$CONFIG_PATH_DEVNET/crypto" "$BRIDGECHAIN_PATH/packages/crypto/src/networks/devnet"
 
